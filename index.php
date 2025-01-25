@@ -90,21 +90,6 @@
 
                         </div>
                     </li>
-                    <!-- <li class="nav-item">
-                        <a class="nav-link" href="#">Quienes somos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Contacto</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Envio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Condiciones Generales</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Condiciones Generales</a>
-                    </li> -->
                 </ul>
             </div>
             <form class="d-flex" role="search">
@@ -143,18 +128,78 @@
     </div>
 
     <!-- End header/navbar-->
-    <section class="container-max-width">
-    Cuerpo
-    
+    <section class="container-max-width" data-bs-theme="dark">
+        <div class="row">
+            <div class="col-md-auto">
+                <p>
+                    <button class="btn btn-primary btn-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseWidthExample" aria-expanded="true"
+                        aria-controls="collapseWidthExample">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                </p>
+
+                <div>
+                    <div class="collapse show collapse-horizontal" id="collapseWidthExample">
+                        <div class="card card-body text-bg-primary" style="width: 300px;">
+                            This is some placeholder content for a horizontal collapse. It's hidden by default and shown
+                            when triggered.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="d-flex flex-row flex-wrap m-4">
+                    <?php
+                    for ($i = 0; $i < 20; $i++) {
+                        echo '
+                            <div class="card m-2" style="width: 12rem;">
+                                <img src="./imgs/z_echoes_.jpg" class="card-img-top" alt="...">
+                                <div class="card-body">
+                                    <h5 class="card-title">Card title</h5>
+                                    <a href="#" class="card-link">Card link</a>
+                                    <a href="#" class="card-link">Another link</a>
+                                </div>
+                            </div>';
+                    }
+
+                    ?>
+                </div>
+                <nav class="d-flex justify-content-center" aria-label="...">
+                    <ul class="pagination">
+                        <li class="page-item disabled">
+                            <a class="page-link">Previous</a>
+                        </li>
+                        <li class="page-item"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item active" aria-current="page">
+                            <a class="page-link" href="#">2</a>
+                        </li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+
     </section>
 
 
 
     <!-- Footer -->
-    <footer class="container-max-width bg-primary">
-        Footer
+    <footer class="container-fluid container-max-width bg-primary py-2" data-bs-theme="dark">
+        <div class="d-flex justify-content-center">
+            <a class="active p-2" aria-current="page" href="#">Quienes somos</a>
+
+            <a class="active p-2" aria-current="page" href="#">Contacto</a>
+            <a class="active p-2" aria-current="page" href="#">Envio</a>
+            <a class="active p-2" aria-current="page" href="#">Condiciones Generales</a>
+            <a class="active p-2" aria-current="page" href="#">Devoluciones</a>
+        </div>
     </footer>
-    
+
     <!-- END Footer -->
 </body>
 
