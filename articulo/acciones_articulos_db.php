@@ -4,7 +4,7 @@ function recuperar_todos_los_articulos(PDO|bool $conn, string $filtro = '', stri
     $data = null;
 
 
-    $select = "SELECT * FROM articulos";
+    $select = "SELECT * FROM ARTICULOS";
     $sql = $select . $filtro . $orden;
     if (is_a($conn, 'PDO')) {
         try {
@@ -14,7 +14,7 @@ function recuperar_todos_los_articulos(PDO|bool $conn, string $filtro = '', stri
             $data = $res;
 
         } catch (PDOException $e) {
-            header('Location: ' . $GLOBALS['root'] . 'error/pagina_error.php');
+            header('Location: ' . $GLOBALS['root'].'error/pagina_error.php');
         }
     }
     return $data;
@@ -36,7 +36,7 @@ function recuperar_todos_los_articulos_categoria(PDO|bool $conn, string $categor
             $data = $res;
 
         } catch (PDOException $e) {
-            header('Location: ' . $GLOBALS['root'] . 'error/pagina_error.php');
+            header('Location: ' . $GLOBALS['root'].'error/pagina_error.php');
         }
     }
     return $data;
@@ -44,7 +44,7 @@ function recuperar_todos_los_articulos_categoria(PDO|bool $conn, string $categor
 function recuperar_un_articulo(PDO|bool $conn, string $id): array
 {
     $data = null;
-    $sql = "SELECT * FROM articulos WHERE ID_ARTICULO=:id";
+    $sql = "SELECT * FROM ARTICULOS WHERE ID_ARTICULO=:id";
     if (is_a($conn, 'PDO')) {
         try {
             $stmt = $conn->prepare($sql);
@@ -52,7 +52,7 @@ function recuperar_un_articulo(PDO|bool $conn, string $id): array
             $stmt->execute();
             $data = $stmt->fetch();
         } catch (PDOException $e) {
-            header('Location: ' . $GLOBALS['root'] . 'error/pagina_error.php');
+            header('Location: ' . $GLOBALS['root'].'error/pagina_error.php');
 
         }
     }
@@ -77,7 +77,7 @@ function buscar_articulos_nombre(PDO|bool $conn, string $nombre, string $orden =
             $data = $res;
 
         } catch (PDOException $e) {
-            header('Location: ' . $GLOBALS['root'] . 'error/pagina_error.php');
+            header('Location: ' . $GLOBALS['root'].'error/pagina_error.php');
         }
     }
     return $data;

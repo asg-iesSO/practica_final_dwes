@@ -11,7 +11,7 @@ function connectBBDD(): bool|PDO
         $conn = new PDO("mysql:host=$hostname;dbname=$database", $username, $password);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     } catch (PDOException $e) {
-       header('Location: ' . $GLOBALS['root'].'error/pagina_error.php');
+        header('Location: ' . $GLOBALS['root'].'error/pagina_error.php');
     }
     return $conn;
 }?>
