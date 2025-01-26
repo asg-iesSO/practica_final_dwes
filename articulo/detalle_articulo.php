@@ -11,7 +11,7 @@ include($root . 'paginas_comunes/header.php')
     </div>
     <div class="row justify-content-center">
         <div class="col-sm-4">
-            <img src="<?php echo $root ?>imgs/z_echoes_.jpg" class="img-fluid" alt="...">
+            <img src="<?php echo $root ?>imgs/z_echoes.jpg" class="img-fluid" alt="...">
         </div>
         <div class="col-sm-6 ">
             <h3>The Legend of zelda ....</h3>
@@ -43,7 +43,7 @@ include($root . 'paginas_comunes/header.php')
                 for ($i = 0; $i < 6; $i++) {
                     echo '
                     <div class="card col-sm-1 m-2" style="width: 12rem;">
-                        <img src="' . $root . 'imgs/z_echoes_.jpg" class="card-img-top" alt="...">
+                        <img src="' . $root . 'imgs/z_echoes.jpg" class="card-img-top" alt="...">
                         <div class="card-body">
                             <h5 class="card-title">Card title</h5>
                             <a href="#" class="card-link">Card link</a>

@@ -100,13 +100,35 @@
                     <span class="badge text-bg-secondary">4</span>
                 </button>
 
-                <div class="dropdown-menu" data-bs-theme="light">
+                <div style="width:14rem" class="dropdown-menu" data-bs-theme="light">
                     <div class="px-4 py-3">
                         <h4>Carrito</h4>
+                    </div>
+                    <div class="d-flex flex-column m-2">
+                        <div class="d-flex my-2">
+                            <div class="flex-shrink-0">
+                                <img src="<?php echo $root ?>imgs/z_echoes.jpg" style="width:3rem" alt="...">
+                            </div>
+                            <div class="flex-grow-1 ms-1">
+                                The Legends of Zelda: Echoes of Wisdom - 50 €
+                            </div>
+                        </div>
+                        <div class="d-flex my-2">
+                            <div class="flex-shrink-0">
+                                <img src="<?php echo $root ?>imgs/z_echoes.jpg" style="width:3rem" alt="...">
+                            </div>
+                            <div class="flex-grow-1 ms-1">
+                                The Legends of Zelda: Echoes of Wisdom - 50 €
+                            </div>
+                        </div>
                     </div>
                     <div class="px-4 py-3">
                         <p>Total</p>
                         <div class="dropdown-divider"></div>
+                        <div class="d-flex justify-content-between">
+                            <h4>50€</h4>
+                            <a class="btn btn-primary">Checkout</a>
+                        </div>
                     </div>
 
                 </div>
