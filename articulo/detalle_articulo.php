@@ -1,6 +1,24 @@
 <?php
 $root = '../';
 $title = 'The Game Store : Articulo';
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+require($root . 'db/conexion_db.php');
+require($root . 'articulo/acciones_articulos_db.php');
+$conn = connectBBDD();
+if (isset($_GET['id'])) {
+    $id = htmlspecialchars($_GET['id']);
+    $articulo = recuperar_un_articulo($conn, $id);
+    $articulos_relacionados = recuperar_todos_los_articulos_categoria($conn, $articulo['CATEGORIA'], " ORDER BY FECHA_SALIDA DESC LIMIT 6");
+
+}
+
+if (isset($_GET['añadir'])) {
+    $añadir = htmlspecialchars($_GET['añadir']);
+    $_SESSION["carrito"][] = recuperar_un_articulo($conn, $añadir);
+}
+
 include($root . 'paginas_comunes/header.php')
     ?>
 <section class="container py-4">
@@ -11,45 +29,54 @@ include($root . 'paginas_comunes/header.php')
     </div>
     <div class="row justify-content-center">
         <div class="col-sm-4">
-            <img src="<?php echo $root ?>imgs/z_echoes.jpg" class="img-fluid" alt="...">
+            <img src="<?php echo $root ?>imgs/<?php echo $articulo['IMAGEN'] ?>" class="img-fluid" alt="...">
         </div>
         <div class="col-sm-6 ">
-            <h3>The Legend of zelda ....</h3>
+            <h3>
+                <?php echo $articulo['NOMBRE'] ?>
+            </h3>
             <div class="d-flex flex-row">
-                <h4 class="me-2">40 €</h4>
-                <h4 class="me-2">Unidades en Stock / Ultimas unidades</h4>
+                <h4 class="me-2">
+                    <?php echo $articulo['PRECIO'] ?> €
+                </h4>
+                <h4 class="me-2">
+                    <?php echo $articulo['STOCK'] ? $articulo['STOCK'] . ' Unidades en Stock' : 'No hay Stock' ?>
+                </h4>
             </div>
 
             <article>
-                Suspendisse potenti. Nunc in leo urna. In pharetra, felis non hendrerit elementum, felis nunc laoreet
-                erat, eget faucibus mi neque id massa. Vivamus venenatis turpis vel ex laoreet, luctus sagittis nisi
-                varius. Integer luctus hendrerit magna, ac ornare ex cursus sed. Nunc eu egestas risus, a vulputate
-                quam. Mauris sit amet erat congue, semper enim et, sodales leo. Vestibulum pulvinar pulvinar semper. Nam
-                pharetra laoreet metus, at laoreet nibh accumsan a. Mauris in posuere nisi. Interdum et malesuada fames
-                ac ante ipsum primis in faucibus. Aliquam non risus bibendum, consectetur libero in, tempor augue. Donec
-                eu quam metus. Curabitur consectetur nisi vitae lacus accumsan, quis mollis nunc dictum. Integer
-                tristique cursus nisi at placerat.
+                <?php echo $articulo['DESCRIPCION'] ?>
             </article>
             <div class="py-4">
-                <button class="btn btn-primary">Añadir al carrito</button>
+                <a class="btn btn-primary"
+                    <?php 
+                    echo 'href="' . $root . 'articulo/detalle_articulo.php?id='.$articulo['ID_ARTICULO'].'&añadir=' . $articulo['ID_ARTICULO'] . '"';
+                    ?>>Añadir al
+                    carrito</a>
             </div>
         </div>
     </div>
+    <hr class="hr" />
+
     <div class="row my-4 justify-content-center">
         <h4>Otros productos de esta categoria</h4>
         <div class="col m-4">
-            <div class="row min-width-content">
+            <div class="d-flex">
                 <?php
-                for ($i = 0; $i < 6; $i++) {
+                foreach ($articulos_relacionados as $articulo_relacionado) {
                     echo '
-                    <div class="card col-sm-1 m-2" style="width: 12rem;">
-                        <img src="' . $root . 'imgs/z_echoes.jpg" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">Card title</h5>
-                            <a href="#" class="card-link">Card link</a>
-                            <a href="#" class="card-link">Another link</a>
+                    <a href="' . $root . 'articulo/detalle_articulo.php?id=' . $articulo_relacionado['ID_ARTICULO'] . '">
+                        <div class="card text-bg-primary m-2 p-2" style="width: 12rem;">
+                            <img style="height:18rem;"src="' . $root . 'imgs/' . $articulo_relacionado['IMAGEN'] . '" class="card-img-top" alt="' . $articulo_relacionado['NOMBRE'] . '">
+                            <div  class="card-body text-bg-primary text-center d-flex flex-column justify-content-between">
+                                <h5 class="card-title text-bg-primary">' . $articulo_relacionado['NOMBRE'] . '</h5>
+                                <h5 class="card-title text-bg-primary">' . $articulo_relacionado['PRECIO'] . '€</h5>
+                                <div class="d-flex justify-content-center">
+                                    <a class="link-light mx-1" href="' . $root . 'articulo/detalle_articulo.php?id='.$articulo['ID_ARTICULO'].'&añadir=' . $articulo_relacionado['ID_ARTICULO'] . '"><i data-feather="shopping-cart"></i></a>
+                                </div>
+                            </div>
                         </div>
-                    </div>';
+                    </a>';
                 }
 
                 ?>

@@ -1,12 +1,37 @@
 <?php
+if(session_status() !== PHP_SESSION_ACTIVE) session_start();
+if(!isset($_SESSION["carrito"])) $_SESSION["carrito"] = array();
+
 $root = './';
 $title = 'The Game Store : Novedades';
-include('paginas_comunes/header.php') ?>
+$titulo_cabecera = 'Novedades';
+
+require($root . 'db/conexion_db.php');
+require($root . 'articulo/acciones_articulos_db.php');
+$conn = connectBBDD();
+$articulos = recuperar_todos_los_articulos($conn, " WHERE STOCK > 0", " ORDER BY FECHA_SALIDA DESC");
+
+if (isset($_GET['busqueda'])) {
+    $busqueda = htmlspecialchars($_GET['busqueda']);
+    $articulos = buscar_articulos_nombre($conn,$busqueda, " ORDER BY FECHA_SALIDA DESC");
+    $title = 'The Game Store : Busqueda';
+    $titulo_cabecera = 'Busqueda';
+}
+
+
+
+if (isset($_GET['añadir'])) {
+    $id = htmlspecialchars($_GET['añadir']);
+    $_SESSION["carrito"][] = recuperar_un_articulo($conn, $id);
+}
+
+include($root . 'paginas_comunes/header.php');
+?>
 
 <section class="container-max-width p-3">
     <div class="row text-center justify-content-center">
         <div class="col-sm-12">
-            <h1>Novedades</h1>
+            <h1><?php echo $titulo_cabecera?></h1>
             <hr class="hr" />
         </div>
     </div>
@@ -62,20 +87,21 @@ include('paginas_comunes/header.php') ?>
         <div class="col">
             <div class="d-flex flex-row flex-wrap m-4">
                 <?php
-                for ($i = 0; $i < 20; $i++) {
+                foreach ($articulos as $articulo) {
                     echo '
-                            <a href="' . $root . 'articulo/detalle_articulo.php"><div class="card text-bg-primary m-2 p-2" style="width: 12rem;">
-                                <img src="./imgs/z_echoes.jpg" class="card-img-top" alt="...">
-                                <div class="card-body text-bg-primary">
-                                    <h5 class="card-title text-bg-primary">Card title</h5>
-                                    <h5 class="card-title text-bg-primary">50€</h5>
-                                    <div class="d-flex justify-content-center">
-                                        <a class="link-light mx-1" href="#"><i data-feather="shopping-cart"></i></a>
-                                    </div>
+                    <a href="' . $root . 'articulo/detalle_articulo.php?id=' . $articulo['ID_ARTICULO'] . '">
+                        <div class="card text-bg-primary m-2 p-2" style="width: 12rem;">
+                            <img style="height:18rem;"src="./imgs/' . $articulo['IMAGEN'] . '" class="card-img-top" alt="' . $articulo['NOMBRE'] . '">
+                            <div  class="card-body text-bg-primary text-center d-flex flex-column justify-content-between">
+                                <h5 class="card-title text-bg-primary">' . $articulo['NOMBRE'] . '</h5>
+                                <h5 class="card-title text-bg-primary">' . $articulo['PRECIO'] . '€</h5>
+                                <div class="d-flex justify-content-center">
+                                    <a class="link-light mx-1" href="' . $root . 'index.php?añadir=' . $articulo['ID_ARTICULO'] . '"><i data-feather="shopping-cart"></i></a>
                                 </div>
-                            </div></a>';
+                            </div>
+                        </div>
+                    </a>';
                 }
-
                 ?>
             </div>
             <nav class="d-flex justify-content-center " aria-label="...">
@@ -101,4 +127,4 @@ include('paginas_comunes/header.php') ?>
 
 
 
-<?php include('paginas_comunes/footer.php'); ?>
+<?php include($root . 'paginas_comunes/footer.php'); ?>

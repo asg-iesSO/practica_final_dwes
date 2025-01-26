@@ -1,3 +1,16 @@
+<?php
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+if (!isset($_SESSION["carrito"])) {
+    $_SESSION["carrito"] = array();
+}
+if (isset($_GET['vaciar'])) {
+    $_SESSION["carrito"] = array();
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,22 +31,11 @@
         crossorigin="anonymous"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
-        const exampleModal = document.getElementById('exampleModal')
-        if (exampleModal) {
-            exampleModal.addEventListener('show.bs.modal', event => {
-                // Button that triggered the modal
+        const modal = document.getElementById('modal')
+        if (modal) {
+            modal.addEventListener('show.bs.modal', event => {
                 const button = event.relatedTarget
-                // Extract info from data-bs-* attributes
                 const recipient = button.getAttribute('data-bs-whatever')
-                // If necessary, you could initiate an Ajax request here
-                // and then do the updating in a callback.
-
-                // Update the modal's content.
-                const modalTitle = exampleModal.querySelector('.modal-title')
-                const modalBodyInput = exampleModal.querySelector('.modal-body input')
-
-                modalTitle.textContent = `New message to ${recipient}`
-                modalBodyInput.value = recipient
             })
         }
     </script>
@@ -49,7 +51,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="<?php echo $root ?>index.php">Inicio</a>
+                        <a class="nav-link active" aria-current="page" href="<?php echo $root; ?>index.php">Inicio</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="#">Ofertas</a>
@@ -97,52 +99,74 @@
             <div class="dropdown">
                 <button class="btn mx-3" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
                     <i data-feather="shopping-cart"></i>
-                    <span class="badge text-bg-secondary">4</span>
+                    
+                        <?php
+                        if (isset($_SESSION["carrito"]) && count($_SESSION["carrito"])) {
+                            echo '<span class="badge text-bg-danger">'.count($_SESSION["carrito"]).'</span>';
+                        }
+                        ?>
                 </button>
 
                 <div style="width:14rem" class="dropdown-menu" data-bs-theme="light">
                     <div class="px-4 py-3">
                         <h4>Carrito</h4>
                     </div>
-                    <div class="d-flex flex-column m-2">
-                        <div class="d-flex my-2">
-                            <div class="flex-shrink-0">
-                                <img src="<?php echo $root ?>imgs/z_echoes.jpg" style="width:3rem" alt="...">
-                            </div>
-                            <div class="flex-grow-1 ms-1">
-                                The Legends of Zelda: Echoes of Wisdom - 50 €
-                            </div>
-                        </div>
-                        <div class="d-flex my-2">
-                            <div class="flex-shrink-0">
-                                <img src="<?php echo $root ?>imgs/z_echoes.jpg" style="width:3rem" alt="...">
-                            </div>
-                            <div class="flex-grow-1 ms-1">
-                                The Legends of Zelda: Echoes of Wisdom - 50 €
-                            </div>
-                        </div>
+                    <div class="d-flex flex-column m-2 overflow-auto" style="height: 20rem;">
+                        <?php
+                        if (isset($_SESSION["carrito"]) && count($_SESSION["carrito"])) {
+                            foreach ($_SESSION["carrito"] as $producto) {
+                                echo ' 
+                                <div class="d-flex my-2">
+                                    <div class="flex-shrink-0">
+                                        <img src="' . $root . 'imgs/' . $producto['IMAGEN'] . '" style="width:3rem" alt="...">
+                                    </div>
+                                    <div class="flex-grow-1 ms-1">
+                                    ' . $producto['NOMBRE'] . ' - ' . $producto['PRECIO'] . ' €
+                                    </div>
+                                </div>
+                            ';
+                            }
+                        }
+
+                        ?>
+
                     </div>
                     <div class="px-4 py-3">
-                        <p>Total</p>
+                        <div class="d-flex justify-content-between">
+                            <p>Total </p>
+                            <h4>
+                                <?php
+                                if (isset($_SESSION["carrito"]) && count($_SESSION["carrito"])) {
+                                    $precio = 0;
+                                    foreach ($_SESSION["carrito"] as $producto) {
+                                        $precio += $producto['PRECIO'];
+                                    }
+                                    echo $precio . ' €';
+                                } ?>
+                            </h4>
+                        </div>
+
                         <div class="dropdown-divider"></div>
                         <div class="d-flex justify-content-between">
-                            <h4>50€</h4>
-                            <a class="btn btn-primary">Checkout</a>
+                            <a class="btn btn-outline-danger btn-sm"
+                                href="<?php echo str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : '?' ?>vaciar=true">Vaciar
+                                carrito</a>
+                            <a class="btn btn-primary btn-sm">Checkout</a>
                         </div>
                     </div>
 
                 </div>
 
             </div>
-            <form class="d-flex" role="search" data-bs-theme="light">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                <button class="btn btn-outline-light" type="submit">Search</button>
+            <form class="d-flex" role="search" action="<?php echo $root?>index.php" method="get" data-bs-theme="light">
+                <input class="form-control me-2" id="busqueda" name="busqueda" type="text" placeholder="Busqueda" aria-label="Busqueda">
+                <button class="btn btn-outline-light" type="submit">Busqueda</button>
             </form>
         </div>
 
 
     </nav>
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="modal" tabindex="-1" aria-labelledby="modal" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
