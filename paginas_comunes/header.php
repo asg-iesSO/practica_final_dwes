@@ -149,7 +149,7 @@ if (isset($_GET['vaciar'])) {
                         <div class="dropdown-divider"></div>
                         <div class="d-flex justify-content-between">
                             <a class="btn btn-outline-danger btn-sm"
-                                href="<?php echo str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : '?' ?>vaciar=true">Vaciar
+                                href="<?php echo str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : $_SERVER['REQUEST_URI'] . '?' ?>vaciar=true">Vaciar
                                 carrito</a>
                             <a class="btn btn-primary btn-sm">Checkout</a>
                         </div>

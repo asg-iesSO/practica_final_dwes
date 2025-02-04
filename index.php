@@ -1,6 +1,8 @@
 <?php
-if(session_status() !== PHP_SESSION_ACTIVE) session_start();
-if(!isset($_SESSION["carrito"])) $_SESSION["carrito"] = array();
+if (session_status() !== PHP_SESSION_ACTIVE)
+    session_start();
+if (!isset($_SESSION["carrito"]))
+    $_SESSION["carrito"] = array();
 
 $root = './';
 $title = 'The Game Store : Novedades';
@@ -8,17 +10,39 @@ $titulo_cabecera = 'Novedades';
 
 require($root . 'db/conexion_db.php');
 require($root . 'articulo/acciones_articulos_db.php');
+require($root . 'categorias/acciones_categorias_db.php');
 $conn = connectBBDD();
-$articulos = recuperar_todos_los_articulos($conn, " WHERE STOCK > 0", " ORDER BY FECHA_SALIDA DESC");
+$articulos = recuperar_todos_los_articulos($conn, " WHERE STOCK > 0", " ORDER BY FECHA_SALIDA DESC LIMIT 14");
+$categorias = recuperar_todas_las_categorias_padre($conn);
 
 if (isset($_GET['busqueda'])) {
     $busqueda = htmlspecialchars($_GET['busqueda']);
-    $articulos = buscar_articulos_nombre($conn,$busqueda, " ORDER BY FECHA_SALIDA DESC");
     $title = 'The Game Store : Busqueda';
     $titulo_cabecera = 'Busqueda';
 }
 
+if (isset($_GET['cat'])) {
+    $id_cat = htmlspecialchars($_GET['cat']);
+    $categorias = recuperar_categorias_por_id_padre($conn, $id_cat);
+    $categoria_padre = recuperar_la_categoria_padre($conn, $id_cat);
+    $categoria_selec = recuperar_categoria_por_id($conn, $id_cat);
+}
 
+if (isset($_GET['precio_maximo'])) {
+    $precio_maximo = htmlspecialchars($_GET['precio_maximo']);
+}
+if (isset($_GET['stock'])) {
+    $stockParam = htmlspecialchars($_GET['stock']);
+    $stock = $stockParam === 'on';
+}
+
+if (isset($busqueda) || isset($id_cat) || isset($precio_maximo) || isset($stock)) {
+    $busqueda = isset($busqueda) ? $busqueda : null;
+    $id_cat = isset($id_cat) ? $id_cat : null;
+    $precio_maximo = isset($precio_maximo) ? $precio_maximo : null;
+    $stock = isset($stock) ? $stock : null;
+    $articulos = buscar_articulos_nombre_filtro($conn, $busqueda, $id_cat, $precio_maximo, $stock, " ORDER BY FECHA_SALIDA DESC LIMIT 14");
+}
 
 if (isset($_GET['añadir'])) {
     $id = htmlspecialchars($_GET['añadir']);
@@ -31,18 +55,56 @@ include($root . 'paginas_comunes/header.php');
 <section class="container-max-width p-3">
     <div class="row text-center justify-content-center">
         <div class="col-sm-12">
-            <h1><?php echo $titulo_cabecera?></h1>
+            <h1>
+                <?php echo $titulo_cabecera ?>
+            </h1>
             <hr class="hr" />
         </div>
     </div>
     <div class="row">
         <div class="col-md-auto">
-            <p>
-                <button class="btn btn-primary btn-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#collapseFiltro" aria-expanded="true" aria-controls="collapseFiltro">
-                    <i data-feather="filter"></i>
-                </button>
-            </p>
+            <div class="d-flex justify-content-between">
+                <p class="m-1">
+                    <button class="btn btn-primary btn-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseFiltro" aria-expanded="true" aria-controls="collapseFiltro">
+                        <i data-feather="filter"></i>
+                    </button>
+                </p>
+                <nav class="m-1" aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <?php
+                        if (
+                            isset($categoria_selec) &&
+                            $categoria_selec &&
+                            count($categoria_selec) > 0 &&
+                            (!isset($categoria_padre) || !$categoria_padre || count($categoria_padre) === 0)
+                        ) {
+                            echo '<li class="breadcrumb-item "><a href="' . $root . 'index.php">Inicio</a></li>';
+                            echo '<li class="breadcrumb-item text-capitalize active" aria-current="page">' . strtolower($categoria_selec['NOMBRE']) . '</li>';
+
+                        } else if (
+                            isset($categoria_selec) &&
+                            $categoria_selec &&
+                            count($categoria_selec) > 0 &&
+                            isset($categoria_padre) &&
+                            $categoria_padre &&
+                            count($categoria_padre) > 0
+                        ) {
+                            echo '<li class="breadcrumb-item "><a href="' . $root . 'index.php">Inicio</a></li>';
+                            echo '<li class="breadcrumb-item text-capitalize" ><a href="' . $root . 'index.php?cat=' . $categoria_padre['ID_CATEGORIA'] . '">' . strtolower($categoria_padre['NOMBRE']) . '</a></li>';
+                            echo '<li class="breadcrumb-item active text-capitalize" aria-current="page">' . strtolower($categoria_selec['NOMBRE']) . '</li>';
+                        } else {
+                            echo '<li class="breadcrumb-item  active" aria-current="page">Inicio</li>';
+                        }
+
+
+
+
+                        ?>
+                    </ol>
+                </nav>
+            </div>
+
 
             <div>
                 <div class="collapse card show collapse-horizontal text-bg-light p-3" id="collapseFiltro">
@@ -54,41 +116,53 @@ include($root . 'paginas_comunes/header.php');
                             aria-controls="collapseCategorias">Categoria</a>
                         <div class="collapse show" id="collapseCategorias">
                             <div class="list-group">
-                                <a href="#" class="list-group-item list-group-item-action">The current link item</a>
-                                <a href="#" class="list-group-item list-group-item-action">A second link item</a>
-                                <a href="#" class="list-group-item list-group-item-action">A third link item</a>
-                                <a href="#" class="list-group-item list-group-item-action">A fourth link item</a>
+                                <?php
+                                $page = str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : $_SERVER['REQUEST_URI'] . '?';
+
+                                if (isset($categorias) && count($categorias) > 0) {
+                                    foreach ($categorias as $categoria) {
+                                        if (isset($id_cat)) {
+                                            $page = str_replace('cat=' . $id_cat, '', $page);
+                                        }
+                                        echo '<a href="' . $page . 'cat=' . $categoria['ID_CATEGORIA'] . '" class="list-group-item list-group-item-action text-capitalize">' . strtolower($categoria['NOMBRE']) . '</a>';
+                                    }
+                                }
+
+
+                                ?>
                             </div>
                         </div>
                     </div>
                     <hr class="hr" />
-                    <form>
-                        <div class="my-2">
-                            <label for="exampleFormControlInput1" class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="Nombre">
+                    <form class="d-flex flex-column text-center justify-content-center">
+                        <div class="my-1">
+                            <label for="precio_maximo" class="form-label">Precio máximo:</label>
+                            <input type="range" value="<?php if (isset($precio_maximo))
+                                echo $precio_maximo; ?>" class="form-range" min="0" max="100" name="precio_maximo"
+                                id="precio_maximo">
                         </div>
 
-                        <label for="customRange2" class="form-label">Precio máximo</label>
-                        <input type="range" class="form-range" min="0" max="100" id="customRange2">
-
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-                            <label class="form-check-label" for="flexSwitchCheckDefault">En stock</label>
-                        </div>
-
-
-                    </form>
+                        <div class="form-check form-switch text-start my-1">
+                            <input class="form-check-input" type="checkbox" <?php if (isset($stockParam))
+                                echo 'checked' ?> role="switch" name="stock" id="stock">
+                                <label class="form-check-label" for="stock">En stock</label>
+                            </div>
+                            <div class="my-1">
+                                <input class="btn btn-primary" type="submit" value="Filtrar">
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
 
 
 
-        <div class="col">
-            <div class="d-flex flex-row flex-wrap m-4">
-                <?php
-                foreach ($articulos as $articulo) {
-                    echo '
+            <div class="col">
+                <div class="d-flex flex-row flex-wrap m-4">
+                    <?php
+                            if (isset($articulos) && count($articulos) > 0) {
+                                foreach ($articulos as $articulo) {
+                                    echo '
                     <a href="' . $root . 'articulo/detalle_articulo.php?id=' . $articulo['ID_ARTICULO'] . '">
                         <div class="card text-bg-primary m-2 p-2" style="width: 12rem;">
                             <img style="height:18rem;"src="./imgs/' . $articulo['IMAGEN'] . '" class="card-img-top" alt="' . $articulo['NOMBRE'] . '">
@@ -101,8 +175,9 @@ include($root . 'paginas_comunes/header.php');
                             </div>
                         </div>
                     </a>';
-                }
-                ?>
+                                }
+                            }
+                            ?>
             </div>
             <nav class="d-flex justify-content-center " aria-label="...">
                 <ul class="pagination">
