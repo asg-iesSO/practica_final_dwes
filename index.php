@@ -7,27 +7,29 @@ if (!isset($_SESSION["carrito"]))
 $root = './';
 $title = 'The Game Store : Novedades';
 $titulo_cabecera = 'Novedades';
+$tamaño_pagina = '14';
 
 require($root . 'db/conexion_db.php');
 require($root . 'articulo/acciones_articulos_db.php');
 require($root . 'categorias/acciones_categorias_db.php');
 $conn = connectBBDD();
-$articulos = recuperar_todos_los_articulos($conn, " WHERE STOCK > 0", " ORDER BY FECHA_SALIDA DESC LIMIT 14");
+
 $categorias = recuperar_todas_las_categorias_padre($conn);
 
+if (isset($_GET['pagina'])) {
+    $pagina = htmlspecialchars($_GET['pagina']);
+}
 if (isset($_GET['busqueda'])) {
     $busqueda = htmlspecialchars($_GET['busqueda']);
     $title = 'The Game Store : Busqueda';
     $titulo_cabecera = 'Busqueda';
 }
-
 if (isset($_GET['cat'])) {
     $id_cat = htmlspecialchars($_GET['cat']);
     $categorias = recuperar_categorias_por_id_padre($conn, $id_cat);
     $categoria_padre = recuperar_la_categoria_padre($conn, $id_cat);
     $categoria_selec = recuperar_categoria_por_id($conn, $id_cat);
 }
-
 if (isset($_GET['precio_maximo'])) {
     $precio_maximo = htmlspecialchars($_GET['precio_maximo']);
 }
@@ -41,15 +43,47 @@ if (isset($busqueda) || isset($id_cat) || isset($precio_maximo) || isset($stock)
     $id_cat = isset($id_cat) ? $id_cat : null;
     $precio_maximo = isset($precio_maximo) ? $precio_maximo : null;
     $stock = isset($stock) ? $stock : null;
-    $articulos = buscar_articulos_nombre_filtro($conn, $busqueda, $id_cat, $precio_maximo, $stock, " ORDER BY FECHA_SALIDA DESC LIMIT 14");
+
+    $total = contar_articulos_nombre_filtro($conn, $busqueda, $id_cat, $precio_maximo, $stock, " ORDER BY FECHA_SALIDA DESC");
+    if ($total > 0) {
+        $paginas = ceil($total / $tamaño_pagina);
+    } else {
+        $paginas = 1;
+    }
+    if (isset($pagina)) {
+        $articulos = buscar_articulos_nombre_filtro($conn, $busqueda, $id_cat, $precio_maximo, $stock, " ORDER BY FECHA_SALIDA DESC LIMIT " . (($pagina - 1) * $tamaño_pagina) . ',' . $tamaño_pagina);
+    } else {
+        $articulos = buscar_articulos_nombre_filtro($conn, $busqueda, $id_cat, $precio_maximo, $stock, " ORDER BY FECHA_SALIDA DESC LIMIT " . $tamaño_pagina);
+    }
+} else {
+    $total = recuperar_total_articulos($conn, " WHERE STOCK > 0", " ORDER BY FECHA_SALIDA DESC");
+
+    if ($total > 0) {
+        $paginas = ceil($total / $tamaño_pagina);
+    } else {
+        $paginas = 1;
+    }
+
+    if (isset($pagina)) {
+        $articulos = recuperar_todos_los_articulos($conn, " WHERE STOCK > 0", " ORDER BY FECHA_SALIDA DESC LIMIT " . (($pagina - 1) * $tamaño_pagina) . ',' . $tamaño_pagina);
+    } else {
+        $articulos = recuperar_todos_los_articulos($conn, " WHERE STOCK > 0", " ORDER BY FECHA_SALIDA DESC LIMIT " . $tamaño_pagina);
+    }
 }
 
-if (isset($_GET['añadir'])) {
-    $id = htmlspecialchars($_GET['añadir']);
+if (isset($_GET['add'])) {
+    $id = htmlspecialchars($_GET['add']);
     $_SESSION["carrito"][] = recuperar_un_articulo($conn, $id);
-}
+    $page = $_SERVER['REQUEST_URI'];
+    $page = preg_replace("/(&|\?)add=" . $id . "/", '', $page);
+    header('Location: ' . $page);
 
+
+}
 include($root . 'paginas_comunes/header.php');
+
+
+
 ?>
 
 <section class="container-max-width p-3">
@@ -73,6 +107,7 @@ include($root . 'paginas_comunes/header.php');
                 <nav class="m-1" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <?php
+
                         if (
                             isset($categoria_selec) &&
                             $categoria_selec &&
@@ -81,7 +116,6 @@ include($root . 'paginas_comunes/header.php');
                         ) {
                             echo '<li class="breadcrumb-item "><a href="' . $root . 'index.php">Inicio</a></li>';
                             echo '<li class="breadcrumb-item text-capitalize active" aria-current="page">' . strtolower($categoria_selec['NOMBRE']) . '</li>';
-
                         } else if (
                             isset($categoria_selec) &&
                             $categoria_selec &&
@@ -117,14 +151,19 @@ include($root . 'paginas_comunes/header.php');
                         <div class="collapse show" id="collapseCategorias">
                             <div class="list-group">
                                 <?php
-                                $page = str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : $_SERVER['REQUEST_URI'] . '?';
 
                                 if (isset($categorias) && count($categorias) > 0) {
+
                                     foreach ($categorias as $categoria) {
+                                        $page = $_SERVER['REQUEST_URI'];
+
                                         if (isset($id_cat)) {
-                                            $page = str_replace('cat=' . $id_cat, '', $page);
+                                            $page = str_replace('cat=' . $id_cat, 'cat=' . $categoria['ID_CATEGORIA'], $page);
+                                        } else {
+                                            $page = str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : $_SERVER['REQUEST_URI'] . '?';
+                                            $page .= 'cat=' . $categoria['ID_CATEGORIA'];
                                         }
-                                        echo '<a href="' . $page . 'cat=' . $categoria['ID_CATEGORIA'] . '" class="list-group-item list-group-item-action text-capitalize">' . strtolower($categoria['NOMBRE']) . '</a>';
+                                        echo '<a href="' . $page . '" class="list-group-item list-group-item-action text-capitalize">' . strtolower($categoria['NOMBRE']) . '</a>';
                                     }
                                 }
 
@@ -160,6 +199,8 @@ include($root . 'paginas_comunes/header.php');
             <div class="col">
                 <div class="d-flex flex-row flex-wrap m-4">
                     <?php
+                            $page = $_SERVER['REQUEST_URI'];
+                            $page = str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : $_SERVER['REQUEST_URI'] . '?';
                             if (isset($articulos) && count($articulos) > 0) {
                                 foreach ($articulos as $articulo) {
                                     echo '
@@ -170,7 +211,7 @@ include($root . 'paginas_comunes/header.php');
                                 <h5 class="card-title text-bg-primary">' . $articulo['NOMBRE'] . '</h5>
                                 <h5 class="card-title text-bg-primary">' . $articulo['PRECIO'] . '€</h5>
                                 <div class="d-flex justify-content-center">
-                                    <a class="link-light mx-1" href="' . $root . 'index.php?añadir=' . $articulo['ID_ARTICULO'] . '"><i data-feather="shopping-cart"></i></a>
+                                    <a class="link-light mx-1" href="' . $page . 'add=' . $articulo['ID_ARTICULO'] . '"><i data-feather="shopping-cart"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -181,17 +222,52 @@ include($root . 'paginas_comunes/header.php');
             </div>
             <nav class="d-flex justify-content-center " aria-label="...">
                 <ul class="pagination">
-                    <li class="page-item ">
-                        <a class="page-link" href="#">Previous</a>
-                    </li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item " aria-current="page">
-                        <a class="page-link" href="#">2</a>
-                    </li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Next</a>
-                    </li>
+                    <?php
+
+                    if (isset($pagina)) {
+                        $page = $_SERVER['REQUEST_URI'];
+
+                        $page = str_replace('pagina=' . $pagina, ('pagina=' . (($pagina - 1) < 1 ? 1 : $pagina - 1)), $page);
+                        if (($pagina - 1) >= 1) {
+                            echo '<li class="page-item">
+                            <a class="page-link" href="' . $page . '">Atras</a>
+                        </li>';
+                        }
+
+                    }
+                    if (isset($paginas)) {
+                        for ($i = 0; $i < $paginas; $i++) {
+                            $page = $_SERVER['REQUEST_URI'];
+
+                            if (isset($pagina)) {
+                                $page = str_replace('pagina=' . $pagina, 'pagina=' . ($i + 1), $page);
+                            } else {
+                                $page = str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : $_SERVER['REQUEST_URI'] . '?';
+                                $page .= 'pagina=' . ($i + 1);
+                            }
+
+                            $disabled = isset($pagina) ?
+                                ($pagina == ($i + 1) ? 'disabled' : '') :
+                                (($i + 1) === 1 ? 'disabled' : '');
+                            echo '<li class="page-item"><a class="page-link ' . $disabled . '" href="' . $page . '">' . ($i + 1) . '</a></li>';
+                        }
+                    }
+                    if ((isset($pagina) && $pagina < $paginas) || (!isset($pagina) && $paginas > 1)) {
+                        $proxima_pagina = (isset($pagina) ? $pagina + 1 : 2);
+                        $page = $_SERVER['REQUEST_URI'];
+                        if (isset($pagina)) {
+                            $page = str_replace('pagina=' . $pagina, ('pagina=' . $proxima_pagina), $page);
+                        } else {
+                            $page = str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : $_SERVER['REQUEST_URI'] . '?';
+                            $page .= 'pagina=' . $proxima_pagina;
+                        }
+
+                        echo '<li class="page-item">
+                            <a class="page-link" href="' . $page . '">Siguiente</a>
+                        </li>';
+                    }
+                    ?>
+
                 </ul>
             </nav>
         </div>

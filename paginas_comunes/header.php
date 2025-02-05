@@ -8,6 +8,9 @@ if (!isset($_SESSION["carrito"])) {
 }
 if (isset($_GET['vaciar'])) {
     $_SESSION["carrito"] = array();
+    $url = preg_replace("/(&|\?)vaciar=true/", '', $_SERVER['REQUEST_URI']);
+
+    header('Location: ' .   $url);
 }
 ?>
 
@@ -99,12 +102,12 @@ if (isset($_GET['vaciar'])) {
             <div class="dropdown">
                 <button class="btn mx-3" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
                     <i data-feather="shopping-cart"></i>
-                    
-                        <?php
-                        if (isset($_SESSION["carrito"]) && count($_SESSION["carrito"])) {
-                            echo '<span class="badge text-bg-danger">'.count($_SESSION["carrito"]).'</span>';
-                        }
-                        ?>
+
+                    <?php
+                    if (isset($_SESSION["carrito"]) && count($_SESSION["carrito"])) {
+                        echo '<span class="badge text-bg-danger">' . count($_SESSION["carrito"]) . '</span>';
+                    }
+                    ?>
                 </button>
 
                 <div style="width:14rem" class="dropdown-menu" data-bs-theme="light">
@@ -158,8 +161,9 @@ if (isset($_GET['vaciar'])) {
                 </div>
 
             </div>
-            <form class="d-flex" role="search" action="<?php echo $root?>index.php" method="get" data-bs-theme="light">
-                <input class="form-control me-2" id="busqueda" name="busqueda" type="text" placeholder="Busqueda" aria-label="Busqueda">
+            <form class="d-flex" role="search" action="<?php echo $root ?>index.php" method="get" data-bs-theme="light">
+                <input class="form-control me-2" id="busqueda" name="busqueda" type="text" placeholder="Busqueda"
+                    aria-label="Busqueda">
                 <button class="btn btn-outline-light" type="submit">Busqueda</button>
             </form>
         </div>
