@@ -10,7 +10,7 @@ if (isset($_GET['vaciar'])) {
     $_SESSION["carrito"] = array();
     $url = preg_replace("/(&|\?)vaciar=true/", '', $_SERVER['REQUEST_URI']);
 
-    header('Location: ' .   $url);
+    header('Location: ' . $url);
 }
 ?>
 
@@ -26,22 +26,15 @@ if (isset($_GET['vaciar'])) {
     <title>
         <?php echo $title; ?>
     </title>
-</head>
-
-<body>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <script src="https://unpkg.com/feather-icons"></script>
-    <script>
-        const modal = document.getElementById('modal')
-        if (modal) {
-            modal.addEventListener('show.bs.modal', event => {
-                const button = event.relatedTarget
-                const recipient = button.getAttribute('data-bs-whatever')
-            })
-        }
-    </script>
+
+</head>
+
+<body>
+
     <!-- Header/Navbar-->
 
     <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
@@ -151,10 +144,11 @@ if (isset($_GET['vaciar'])) {
 
                         <div class="dropdown-divider"></div>
                         <div class="d-flex justify-content-between">
-                            <a class="btn btn-outline-danger btn-sm"
+                            <a class="btn btn-outline-danger btn-sm <?php echo count($_SESSION["carrito"]) == 0 ? 'disabled' : '' ?>"
                                 href="<?php echo str_contains($_SERVER['REQUEST_URI'], '?') ? $_SERVER['REQUEST_URI'] . '&' : $_SERVER['REQUEST_URI'] . '?' ?>vaciar=true">Vaciar
                                 carrito</a>
-                            <a class="btn btn-primary btn-sm">Checkout</a>
+                            <a href="<?php echo $root . 'checkout/checkout.php'; ?>"
+                                class="btn btn-primary btn-sm <?php echo count($_SESSION["carrito"]) == 0 ? 'disabled' : '' ?>">Checkout</a>
                         </div>
                     </div>
 
@@ -197,7 +191,7 @@ if (isset($_GET['vaciar'])) {
         </div>
     </div>
 
-
+   
 
 
     <!-- End header/navbar-->

@@ -13,13 +13,15 @@ if (isset($_GET['id'])) {
     $articulos_relacionados = recuperar_todos_los_articulos_categoria($conn, $articulo['CATEGORIA'], " ORDER BY FECHA_SALIDA DESC LIMIT 6");
 
 }
-
-if (isset($_GET['añadir'])) {
-    $añadir = htmlspecialchars($_GET['añadir']);
-    $_SESSION["carrito"][] = recuperar_un_articulo($conn, $añadir);
+if (isset($_GET['add'])) {
+    $id = htmlspecialchars($_GET['add']);
+    $_SESSION["carrito"][] = recuperar_un_articulo($conn, $id);
+    $page = $_SERVER['REQUEST_URI'];
+    $page = preg_replace("/(&|\?)add=" . $id . "/", '', $page);
+    header('Location: ' . $page);
 }
 
-include($root . 'paginas_comunes/header.php')
+include($root . 'paginas_comunes/header.php');
     ?>
 <section class="container py-4">
     <div class="d-flex flex-row-reverse">
@@ -50,7 +52,7 @@ include($root . 'paginas_comunes/header.php')
             <div class="py-4">
                 <a class="btn btn-primary"
                     <?php 
-                    echo 'href="' . $root . 'articulo/detalle_articulo.php?id='.$articulo['ID_ARTICULO'].'&añadir=' . $articulo['ID_ARTICULO'] . '"';
+                    echo 'href="' . $root . 'articulo/detalle_articulo.php?id='.$articulo['ID_ARTICULO'].'&add=' . $articulo['ID_ARTICULO'] . '"';
                     ?>>Añadir al
                     carrito</a>
             </div>
@@ -72,7 +74,7 @@ include($root . 'paginas_comunes/header.php')
                                 <h5 class="card-title text-bg-primary">' . $articulo_relacionado['NOMBRE'] . '</h5>
                                 <h5 class="card-title text-bg-primary">' . $articulo_relacionado['PRECIO'] . '€</h5>
                                 <div class="d-flex justify-content-center">
-                                    <a class="link-light mx-1" href="' . $root . 'articulo/detalle_articulo.php?id='.$articulo['ID_ARTICULO'].'&añadir=' . $articulo_relacionado['ID_ARTICULO'] . '"><i data-feather="shopping-cart"></i></a>
+                                    <a class="link-light mx-1" href="' . $root . 'articulo/detalle_articulo.php?id='.$articulo['ID_ARTICULO'].'&add=' . $articulo_relacionado['ID_ARTICULO'] . '"><i data-feather="shopping-cart"></i></a>
                                 </div>
                             </div>
                         </div>

@@ -77,8 +77,6 @@ if (isset($_GET['add'])) {
     $page = $_SERVER['REQUEST_URI'];
     $page = preg_replace("/(&|\?)add=" . $id . "/", '', $page);
     header('Location: ' . $page);
-
-
 }
 include($root . 'paginas_comunes/header.php');
 
