@@ -12,6 +12,7 @@ if (isset($_GET['vaciar'])) {
 
     header('Location: ' . $url);
 }
+
 ?>
 
 <!DOCTYPE html>

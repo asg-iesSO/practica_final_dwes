@@ -9,54 +9,58 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 if (isset($_POST) && count($_POST) > 0) {
-    //CONVERTIR EN DATOS ARRAY PARA MANDAR GUARDAR.
-    $email = '';
-    $dni = '';
-    $telefono = '';
-    $password = '';
-    $nombre = '';
-    $apellido1 = '';
-    $apellido2 = '';
-    $localidad_factura = '';
-    $provincia_factura = '';
-    $direccion_factura = '';
-    $localidad_envio = '';
-    $provincia_envio = '';
-    $direccion_envio = '';
-    $num_tarjeta = '';
-    $fecha_caducidad_tarjeta = '';
-    $cvv_tarjeta = '';
+    $datos_formulario = array(
+        'email' => '',
+        'dni' => '',
+        'telefono' => '',
+        'password' => '',
+        'nombre' => '',
+        'apellido1' => '',
+        'apellido2' => '',
+        'localidad_factura' => '',
+        'provincia_factura' => '',
+        'direccion_factura' => '',
+        'localidad_envio' => '',
+        'provincia_envio' => '',
+        'direccion_envio' => '',
+        'num_tarjeta' => '',
+        'fecha_caducidad_tarjeta' => '',
+        'cvv_tarjeta' => ''
+    );
+
+    echo 'pass : ' . $_POST['password'];
     $datos_personales_ok = validar_datos_personales($_POST);
     if ($datos_personales_ok) {
-        $email = htmlspecialchars($_POST['email']);
-        $dni = htmlspecialchars($_POST['dni']);
-        $telefono = htmlspecialchars($_POST['telefono']);
-        $password = htmlspecialchars($_POST['password']);
-        $nombre = htmlspecialchars($_POST['nombre']);
-        $apellido1 = htmlspecialchars($_POST['apellido1']);
-        $apellido2 = htmlspecialchars($_POST['apellido2']);
+        $datos_formulario['email'] = htmlspecialchars($_POST['email']);
+        $datos_formulario['dni'] = htmlspecialchars($_POST['dni']);
+        $datos_formulario['telefono'] = htmlspecialchars($_POST['telefono']);
+        $datos_formulario['password'] = isset($_POST['password']) && $_POST['password'] ? password_hash(htmlspecialchars($_POST['password']), PASSWORD_DEFAULT) : '';
+        $datos_formulario['nombre'] = htmlspecialchars($_POST['nombre']);
+        $datos_formulario['apellido1'] = htmlspecialchars($_POST['apellido1']);
+        $datos_formulario['apellido2'] = htmlspecialchars($_POST['apellido2']);
     }
     $datos_direccion_ok = validar_datos_direccion($_POST);
     if ($datos_direccion_ok) {
-        $localidad_factura = htmlspecialchars($_POST['localidad-factura']);
-        $provincia_factura = htmlspecialchars($_POST['provincia-factura']);
-        $direccion_factura = htmlspecialchars($_POST['direccion-factura']);
-        $localidad_envio = htmlspecialchars($_POST['localidad-envio']);
-        $provincia_envio = htmlspecialchars($_POST['provincia-envio']);
-        $direccion_envio = htmlspecialchars($_POST['direccion-envio']);
+        $datos_formulario['localidad_factura'] = htmlspecialchars($_POST['localidad-factura']);
+        $datos_formulario['provincia_factura'] = htmlspecialchars($_POST['provincia-factura']);
+        $datos_formulario['direccion_factura'] = htmlspecialchars($_POST['direccion-factura']);
+        $datos_formulario['localidad_envio'] = htmlspecialchars($_POST['localidad-envio']);
+        $datos_formulario['provincia_envio'] = htmlspecialchars($_POST['provincia-envio']);
+        $datos_formulario['direccion_envio'] = htmlspecialchars($_POST['direccion-envio']);
     }
     $datos_pago_ok = validar_datos_pago($_POST);
     if ($datos_pago_ok) {
-        $num_tarjeta = htmlspecialchars($_POST['num-tarjeta']);
-        $fecha_caducidad_tarjeta = htmlspecialchars($_POST['fecha-caducidad-tarjeta']);
-        $cvv_tarjeta = htmlspecialchars($_POST['cvv-tarjeta']);
+        $datos_formulario['num_tarjeta'] = htmlspecialchars($_POST['num-tarjeta']);
+        $datos_formulario['fecha_caducidad_tarjeta'] = htmlspecialchars($_POST['fecha-caducidad-tarjeta']);
+        $datos_formulario['cvv_tarjeta'] = htmlspecialchars($_POST['cvv-tarjeta']);
     }
 
     if ($datos_personales_ok && $datos_direccion_ok && $datos_pago_ok) {
-        $pedido_ok = guardar_pedido($conn);
+        $pedido_ok = guardar_pedido($conn, $datos_formulario, $_SESSION["carrito"]);
 
         if ($pedido_ok) {
-            header('Location: ' . $root . 'checkout/checkout_ok.php');
+            echo 'todo OK';
+            //header('Location: ' . $root . 'checkout/checkout_ok.php');
         }
     }
 }
@@ -71,12 +75,11 @@ function validar_datos_personales(array $post_data): bool
     $email = htmlspecialchars($post_data['email']);
     $dni = htmlspecialchars($post_data['dni']);
     $telefono = htmlspecialchars($post_data['telefono']);
-    $password = htmlspecialchars($post_data['password']);
     $nombre = htmlspecialchars($post_data['nombre']);
     $apellido1 = htmlspecialchars($post_data['apellido1']);
     $apellido2 = htmlspecialchars($post_data['apellido2']);
 
-    $datos_ok = $email && $dni && $telefono && $password && $nombre && $apellido1 && $apellido2;
+    $datos_ok = $email && $dni && $telefono && $nombre && $apellido1 && $apellido2;
 
     return $email_ok && $dni_ok && $datos_ok;
 }
@@ -109,19 +112,19 @@ function validar_datos_pago(array $post_data): bool
     return $datos_ok;
 }
 
-function guardar_pedido(PDO|bool $conn): bool
+function guardar_pedido(PDO|bool $conn, array $datos_formulario, array $productos): bool
 {
     $pedido_ok = true;
     $pago_ok = true;
     $guardar_pedido_ok = true;
-    $pago_ok = realizar_pago($conn, $GLOBALS['num_tarjeta'], $GLOBALS['fecha_caducidad_tarjeta'], $GLOBALS['cvv_tarjeta']);
-    $guardar_pedido_ok = true;
-
+    $pago_ok = realizar_pago($conn, $datos_formulario['num_tarjeta'], $datos_formulario['fecha_caducidad_tarjeta'], $datos_formulario['cvv_tarjeta']);
+    $guardar_pedido_ok = guardar_pedido_nuevo($conn, $datos_formulario, $productos);
     $pedido_ok = $pago_ok && $guardar_pedido_ok;
 
     return $pedido_ok;
 }
 include($root . 'paginas_comunes/header.php');
+
 ?>
 
 <section class="container py-4">

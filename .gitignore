@@ -1,1 +1,3 @@
 db/db_info.php
+composer.lock
+vendor/*
